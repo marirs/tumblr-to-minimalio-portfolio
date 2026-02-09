@@ -190,7 +190,7 @@
 		isImporting = true;
 		$('#ttmp-import-selected').prop('disabled', true);
 		$('#ttmp-fetch').prop('disabled', true);
-		$('#ttmp-import-log').show();
+		switchTab('log');
 
 		var queue = [];
 		$checked.each(function () {
@@ -241,6 +241,7 @@
 					assign_categories: assignCategories,
 				},
 				success: function (response) {
+					console.log('[TTMP] Import response:', response.data);
 					$item.find('.ttmp-post-status').remove();
 
 					if (response.success) {
@@ -255,12 +256,18 @@
 								if (response.data.ai_source) {
 									titleHtml += ' <span class="ttmp-ai-source">(' + escHtml(response.data.ai_source) + ')</span>';
 								}
+								if (response.data.ai_errors && response.data.ai_errors.length) {
+									titleHtml += '<br><small style="color:#b32d2e;">⚠ ' + escHtml(response.data.ai_errors.join(' → ')) + '</small>';
+								}
 								$item.find('.ttmp-post-title').html(titleHtml);
 							}
 
 							var msg = response.data.message;
 							if (response.data.ai_source) {
 								msg += ' [AI: ' + response.data.ai_source + ']';
+							}
+							if (response.data.ai_errors && response.data.ai_errors.length) {
+								msg += ' ⚠ Vision skipped: ' + response.data.ai_errors[0];
 							}
 							addLogEntry('success', msg, response.data.edit_url);
 
@@ -287,7 +294,7 @@
 					}
 
 					$item.find('.ttmp-post-checkbox').prop('checked', false);
-					setTimeout(importNext, 500);
+					setTimeout(importNext, 2000);
 				},
 				error: function (xhr, status, error) {
 					$item.find('.ttmp-post-status').remove();
@@ -295,13 +302,15 @@
 					$item.append('<span class="ttmp-post-status status-failed">' + ttmpImporter.i18n.failed + '</span>');
 					addLogEntry('error', (post.title || 'Post') + ': Request failed - ' + error);
 					$item.find('.ttmp-post-checkbox').prop('checked', false);
-					setTimeout(importNext, 500);
+					setTimeout(importNext, 2000);
 				},
 			});
 		}
 
 		importNext();
 	}
+
+	var logCount = 0;
 
 	function addLogEntry(type, message, editUrl) {
 		var html = '<div class="ttmp-log-entry log-' + type + '">' + escHtml(message);
@@ -310,6 +319,16 @@
 		}
 		html += '</div>';
 		$('#ttmp-log-entries').prepend(html);
+
+		logCount++;
+		$('#ttmp-log-count').text(logCount).show();
+	}
+
+	function switchTab(tabName) {
+		$('.ttmp-tab').removeClass('active');
+		$('.ttmp-tab[data-tab="' + tabName + '"]').addClass('active');
+		$('.ttmp-tab-content').hide();
+		$('#ttmp-tab-' + tabName).show();
 	}
 
 	// =========================================================================
@@ -455,6 +474,12 @@
 		// Test API buttons
 		$(document).on('click', '.ttmp-test-api', function () {
 			testApiKey($(this));
+		});
+
+		// Tab switching
+		$(document).on('click', '.ttmp-tab', function (e) {
+			e.preventDefault();
+			switchTab($(this).data('tab'));
 		});
 
 		// Toggle AI services visibility

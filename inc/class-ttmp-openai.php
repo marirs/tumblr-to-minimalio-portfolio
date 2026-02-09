@@ -97,8 +97,9 @@ class TTMP_OpenAI extends TTMP_AI_Service {
 					],
 				],
 			],
-			'max_tokens'  => 300,
-			'temperature' => 0.3,
+			'max_tokens'     => 300,
+			'temperature'    => 0.3,
+			'response_format' => [ 'type' => 'json_object' ],
 		];
 
 		$response = wp_remote_post( self::API_BASE . 'chat/completions', [

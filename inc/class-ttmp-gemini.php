@@ -93,8 +93,9 @@ class TTMP_Gemini extends TTMP_AI_Service {
 				],
 			],
 			'generationConfig' => [
-				'temperature'     => 0.3,
-				'maxOutputTokens' => 300,
+				'temperature'      => 0.3,
+				'maxOutputTokens'  => 300,
+				'responseMimeType' => 'application/json',
 			],
 		];
 

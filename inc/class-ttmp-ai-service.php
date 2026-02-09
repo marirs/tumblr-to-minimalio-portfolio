@@ -131,7 +131,37 @@ abstract class TTMP_AI_Service {
 
 		$data = json_decode( $cleaned, true );
 
+		// If JSON parsing fails, try to fix common issues (unquoted values, trailing commas)
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
+			// Try to extract values with regex as fallback
+			$title = '';
+			$desc  = '';
+			$cat   = null;
+
+			if ( preg_match( '/"title"\s*:\s*"([^"]+)"/i', $cleaned, $m ) ) {
+				$title = $m[1];
+			} elseif ( preg_match( '/"title"\s*:\s*([^,}\n]+)/i', $cleaned, $m ) ) {
+				$title = trim( $m[1], " \t\n\r\0\x0B\"" );
+			}
+
+			if ( preg_match( '/"description"\s*:\s*"([^"]+)"/i', $cleaned, $m ) ) {
+				$desc = $m[1];
+			} elseif ( preg_match( '/"description"\s*:\s*([^,}\n]+)/i', $cleaned, $m ) ) {
+				$desc = trim( $m[1], " \t\n\r\0\x0B\"" );
+			}
+
+			if ( preg_match( '/"category"\s*:\s*"([^"]+)"/i', $cleaned, $m ) ) {
+				$cat = $m[1];
+			}
+
+			if ( ! empty( $title ) ) {
+				return [
+					'title'       => sanitize_text_field( substr( $title, 0, 60 ) ),
+					'description' => sanitize_text_field( substr( $desc, 0, 155 ) ),
+					'category'    => $cat !== null ? sanitize_text_field( $cat ) : null,
+				];
+			}
+
 			return new WP_Error( 'parse_error', 'Failed to parse AI response: ' . json_last_error_msg() . ' | Raw: ' . substr( $raw_response, 0, 200 ) );
 		}
 

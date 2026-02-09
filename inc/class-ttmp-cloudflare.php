@@ -87,23 +87,33 @@ class TTMP_Cloudflare extends TTMP_AI_Service {
 
 		$url = self::API_BASE . rawurlencode( $account_id ) . '/ai/run/' . self::MODEL;
 
-		$body = [
-			'messages' => [
-				[
-					'role'    => 'user',
-					'content' => $prompt,
-				],
-			],
-			'image' => 'data:image/jpeg;base64,' . $image_base64,
-		];
+		// Cloudflare LLaVA: send image as raw binary via multipart, prompt in JSON
+		$raw_bytes = base64_decode( $image_base64 );
+
+		$boundary = wp_generate_password( 24, false );
+		$payload  = '';
+
+		// Image part
+		$payload .= '--' . $boundary . "\r\n";
+		$payload .= "Content-Disposition: form-data; name=\"image\"; filename=\"image.jpg\"\r\n";
+		$payload .= "Content-Type: image/jpeg\r\n\r\n";
+		$payload .= $raw_bytes . "\r\n";
+
+		// Prompt part (as JSON messages)
+		$payload .= '--' . $boundary . "\r\n";
+		$payload .= "Content-Disposition: form-data; name=\"messages\"\r\n";
+		$payload .= "Content-Type: application/json\r\n\r\n";
+		$payload .= wp_json_encode( [ [ 'role' => 'user', 'content' => $prompt ] ] ) . "\r\n";
+
+		$payload .= '--' . $boundary . "--\r\n";
 
 		$response = wp_remote_post( $url, [
 			'timeout' => 30,
 			'headers' => [
 				'Authorization' => 'Bearer ' . $api_token,
-				'Content-Type'  => 'application/json',
+				'Content-Type'  => 'multipart/form-data; boundary=' . $boundary,
 			],
-			'body' => wp_json_encode( $body ),
+			'body' => $payload,
 		] );
 
 		if ( is_wp_error( $response ) ) {

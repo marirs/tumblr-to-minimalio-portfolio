@@ -62,8 +62,9 @@ class TTMP_ChatGPT_Text extends TTMP_AI_Service {
 					'content' => $prompt,
 				],
 			],
-			'max_tokens'  => 200,
-			'temperature' => 0.4,
+			'max_tokens'     => 200,
+			'temperature'    => 0.4,
+			'response_format' => [ 'type' => 'json_object' ],
 		];
 
 		$response = wp_remote_post( TTMP_OpenAI::API_BASE . 'chat/completions', [

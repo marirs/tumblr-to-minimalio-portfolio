@@ -438,12 +438,18 @@ class TTMP_Importer {
 					<?php endif; ?>
 				</div>
 
-				<div id="ttmp-posts-list"></div>
-			</div>
+				<nav class="ttmp-tabs">
+					<a href="#" class="ttmp-tab active" data-tab="posts"><?php esc_html_e( 'Posts', 'tumblr-to-minimalio' ); ?></a>
+					<a href="#" class="ttmp-tab" data-tab="log"><?php esc_html_e( 'Import Log', 'tumblr-to-minimalio' ); ?> <span id="ttmp-log-count" class="ttmp-tab-badge" style="display:none;">0</span></a>
+				</nav>
 
-			<div id="ttmp-import-log" style="display:none;">
-				<h2><?php esc_html_e( 'Import Log', 'tumblr-to-minimalio' ); ?></h2>
-				<div id="ttmp-log-entries"></div>
+				<div class="ttmp-tab-content" id="ttmp-tab-posts">
+					<div id="ttmp-posts-list"></div>
+				</div>
+
+				<div class="ttmp-tab-content" id="ttmp-tab-log" style="display:none;">
+					<div id="ttmp-log-entries"></div>
+				</div>
 			</div>
 		</div>
 		<?php
