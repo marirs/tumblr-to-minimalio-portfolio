@@ -1,5 +1,5 @@
 === Tumblr to Minimalio Portfolio ===
-Contributors: sriramgovindan
+Contributors: marirs
 Tags: tumblr, import, portfolio, minimalio, ai, seo
 Requires at least: 5.8
 Tested up to: 6.7

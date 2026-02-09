@@ -96,19 +96,19 @@ Drag and drop the AI service cards on the settings page to set the failover prio
 
 ### Settings Page
 
-![Settings Page](docs/screenshot-settings.png)
+![Settings Page](screenshot-1.png)
 
 The initial settings page under **Tools → Import**. Enter your Tumblr blog URL and OAuth Consumer Key. Enable AI-powered SEO generation to automatically generate titles and descriptions for imported posts.
 
 ### AI Service Configuration
 
-![AI Service Configuration](docs/screenshot-ai-config.png)
+![AI Service Configuration](screenshot-2.png)
 
 The full settings page with AI enabled. Configure one or more AI services — drag to reorder the failover priority. Each service card shows its pricing tier (Free/Paid) and includes a **Test** button to verify your API key. The **Text-Only AI Fallback** section shows services that generate titles from tags when vision AI is unavailable. The **AI Category Assignment** section lets you control how categories are assigned. The current failover chain is displayed at the bottom.
 
 ### Import in Progress
 
-![Import in Progress](docs/screenshot-import.png)
+![Import in Progress](screenshot-3.png)
 
 The import page showing posts being imported with AI-generated titles. Each post displays its thumbnail, AI-generated title, the AI service that generated it (shown in blue, e.g., *OpenAI*, *ChatGPT (text)*), tags, and import status. The **Import Options** panel shows the full failover chain. Use the **Posts** and **Import Log** tabs to switch between the post list and detailed import log.
 
