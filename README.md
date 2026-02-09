@@ -43,6 +43,10 @@ The AI system uses a **three-tier failover chain**:
 - PHP 7.4+
 - [Minimalio Portfolio](https://minimalio.org/premium-plugin/) plugin (must be active)
 - A [Tumblr API key](https://www.tumblr.com/oauth/apps) (free)
+- **For AI SEO generation (optional)** — at least one of the following:
+  - [OpenAI API key](https://platform.openai.com/api-keys) (pay-per-use, also powers ChatGPT text fallback)
+  - [Google Gemini API key](https://aistudio.google.com/apikey) (free tier available, also powers Gemini text fallback)
+  - [Cloudflare Workers AI](https://dash.cloudflare.com) account ID + API token (free tier available)
 
 ## Installation
 
