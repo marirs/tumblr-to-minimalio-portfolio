@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Tumblr to Minimalio Portfolio
- * Plugin URI:  https://developer.suspended.suspended
+ * Plugin URI:  https://wordpress.org/plugins/tumblr-to-minimalio-portfolio
  * Description: Import photos and videos from Tumblr into the Minimalio Portfolio custom post type. Supports AI-powered SEO title, description, and category generation via Google Gemini, Cloudflare Workers AI, and OpenAI.
  * Version:     1.0.0
  * Author:      Sriram Govindan
