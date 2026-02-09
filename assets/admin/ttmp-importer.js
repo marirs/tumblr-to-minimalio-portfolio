@@ -139,6 +139,10 @@
 			}
 
 			var title = post.title || '(No title \u2014 will be auto-generated)';
+			var titleHtml = escHtml(title);
+			if (post.already_imported && post.ai_source) {
+				titleHtml += ' <span class="ttmp-ai-source">(' + escHtml(post.ai_source) + ')</span>';
+			}
 			var dateStr = new Date(post.timestamp * 1000).toLocaleDateString(undefined, {
 				year: 'numeric', month: 'short', day: 'numeric',
 			});
@@ -161,7 +165,7 @@
 				'<input type="checkbox" class="ttmp-post-checkbox" data-index="' + index + '" ' + checked + ' />' +
 				thumbHtml +
 				'<div class="ttmp-post-info">' +
-				'<div class="ttmp-post-title">' + escHtml(title) + '</div>' +
+				'<div class="ttmp-post-title">' + titleHtml + '</div>' +
 				'<div class="ttmp-post-meta">' + escHtml(typeLabel) + ' &mdash; ' + escHtml(dateStr) + '</div>' +
 				tagsHtml +
 				'</div>' +
@@ -258,11 +262,20 @@
 							$item.addClass('imported');
 							$item.append('<span class="ttmp-post-status status-imported">' + ttmpImporter.i18n.imported + '</span>');
 
-							// Track imported ID in localStorage for resume
+							// Track imported ID and save final title to localStorage for resume
 							try {
 								var ids = JSON.parse(localStorage.getItem('ttmp_imported_ids')) || [];
 								if (ids.indexOf(post.tumblr_id) === -1) { ids.push(post.tumblr_id); }
 								localStorage.setItem('ttmp_imported_ids', JSON.stringify(ids));
+
+								// Update allPosts with final title + source so resume shows them
+								if (response.data.title) {
+									allPosts[idx].title = response.data.title;
+								}
+								if (response.data.ai_source) {
+									allPosts[idx].ai_source = response.data.ai_source;
+								}
+								localStorage.setItem('ttmp_posts', JSON.stringify(allPosts));
 							} catch(ex) {}
 
 							// Update the title in the post list with the final title used
