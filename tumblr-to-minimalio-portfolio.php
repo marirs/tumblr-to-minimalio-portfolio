@@ -49,6 +49,16 @@ function ttmp_check_dependency() {
 add_action( 'init', 'ttmp_check_dependency', 20 );
 
 /**
+ * Add "Run Importer" link on the Plugins page
+ */
+function ttmp_plugin_action_links( $links ) {
+	$importer_link = '<a href="' . esc_url( admin_url( 'admin.php?import=ttmp-importer' ) ) . '">' . esc_html__( 'Run Importer', 'tumblr-to-minimalio' ) . '</a>';
+	array_unshift( $links, $importer_link );
+	return $links;
+}
+add_filter( 'plugin_action_links_' . TTMP_PLUGIN_BASENAME, 'ttmp_plugin_action_links' );
+
+/**
  * Show admin notice if Minimalio Portfolio is not active
  */
 function ttmp_dependency_notice() {
