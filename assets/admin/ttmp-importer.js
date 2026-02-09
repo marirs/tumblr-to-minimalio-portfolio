@@ -503,13 +503,13 @@
 					$('#ttmp-fetch').after(
 						'<span id="ttmp-resume-notice" style="margin-left:12px;color:#2271b1;font-style:italic;">' +
 						parsed.length + ' posts restored (' + importedCount + ' already imported, ' + remaining + ' remaining). ' +
-						'<a href="#" id="ttmp-clear-session">Clear &amp; re-fetch</a></span>'
+						'<a href="#" id="ttmp-clear-session">Clear</a> · <a href="#" id="ttmp-clear-refetch">Clear &amp; re-fetch</a></span>'
 					);
 				}
 			}
 		} catch(e) {}
 
-		// Clear saved session
+		// Clear saved session (just clear, no re-fetch)
 		$(document).on('click', '#ttmp-clear-session', function (e) {
 			e.preventDefault();
 			try { localStorage.removeItem('ttmp_posts'); localStorage.removeItem('ttmp_imported_ids'); } catch(ex) {}
@@ -517,6 +517,17 @@
 			$('#ttmp-posts-list').empty();
 			$('#ttmp-results').hide();
 			$('#ttmp-resume-notice').remove();
+		});
+
+		// Clear and re-fetch
+		$(document).on('click', '#ttmp-clear-refetch', function (e) {
+			e.preventDefault();
+			try { localStorage.removeItem('ttmp_posts'); localStorage.removeItem('ttmp_imported_ids'); } catch(ex) {}
+			allPosts = [];
+			$('#ttmp-posts-list').empty();
+			$('#ttmp-results').hide();
+			$('#ttmp-resume-notice').remove();
+			fetchAllPosts();
 		});
 
 		// Fetch
