@@ -1,6 +1,6 @@
 # Tumblr to Minimalio Portfolio
 
-A WordPress plugin that imports photos and videos from a Tumblr blog into the [Minimalio Portfolio](https://wordpress.org/plugins/minimalio-portfolio/) custom post type, with AI-powered SEO title, description, and category generation.
+A WordPress plugin that imports photos and videos from a Tumblr blog into the [Minimalio Portfolio](https://minimalio.org/premium-plugin/) custom post type, with AI-powered SEO title, description, and category generation.
 
 ## Features
 
@@ -36,7 +36,7 @@ When enabled, the plugin uses AI to generate SEO-optimized titles, descriptions,
 
 - WordPress 5.8+
 - PHP 7.4+
-- [Minimalio Portfolio](https://wordpress.org/plugins/minimalio-portfolio/) plugin (must be active)
+- [Minimalio Portfolio](https://minimalio.org/premium-plugin/) plugin (must be active)
 - A [Tumblr API key](https://www.tumblr.com/oauth/apps) (free)
 
 ## Installation
