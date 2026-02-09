@@ -374,3 +374,9 @@
 .ttmp-log-entry a {
 	margin-left: 8px;
 }
+
+/* Disabled option */
+.ttmp-option-disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}

@@ -12,7 +12,7 @@ Import photos and videos from Tumblr into the Minimalio Portfolio custom post ty
 
 == Description ==
 
-A WordPress plugin that imports photos and videos from a Tumblr blog into the [Minimalio Portfolio](https://minimalio.org/premium-plugin/) custom post type, with AI-powered SEO title, description, alt text, and category generation.
+A WordPress plugin that imports photos and videos from a Tumblr blog into the [Minimalio Portfolio](https://minimalio.org/premium-plugin/) custom post type or standard WordPress posts, with AI-powered SEO title, description, alt text, and category generation.
 
 = Features =
 
@@ -22,7 +22,8 @@ A WordPress plugin that imports photos and videos from a Tumblr blog into the [M
 * **Video Support** — Embeds Vimeo and other video posts with proper Gutenberg embed blocks.
 * **Duplicate Detection** — Skips posts that have already been imported.
 * **Resume Import** — If the browser is closed mid-import, the fetched post list is restored on the next visit so you can continue where you left off.
-* **Tag Preservation** — Maps Tumblr tags to Portfolio Tags taxonomy.
+* **Flexible Post Type** — Import into Minimalio Portfolio (if active) or standard WordPress posts. Portfolio option is greyed out when the plugin is not installed.
+* **Tag Preservation** — Maps Tumblr tags to the appropriate taxonomy (Portfolio Tags or Post Tags).
 * **Original Date** — Preserves the original Tumblr post date.
 * **Post Status** — Choose to import posts as Published (live immediately) or Draft (review first).
 * **Post Author** — Assign all imported posts to a specific WordPress user.
@@ -55,7 +56,7 @@ The AI system uses a three-tier failover chain:
 
 = Requirements =
 
-* [Minimalio Portfolio](https://minimalio.org/premium-plugin/) plugin (must be active)
+* [Minimalio Portfolio](https://minimalio.org/premium-plugin/) plugin (optional — required only for importing into the Portfolio post type)
 * A [Tumblr API key](https://www.tumblr.com/oauth/apps) (free)
 * **For AI SEO generation (optional)** — at least one of the following:
   * [OpenAI API key](https://platform.openai.com/api-keys) (pay-per-use, also powers ChatGPT text fallback)
@@ -65,8 +66,8 @@ The AI system uses a three-tier failover chain:
 == Installation ==
 
 1. Upload the `tumblr-to-minimalio-portfolio` folder to the `/wp-content/plugins/` directory.
-2. Activate the **Minimalio Portfolio** plugin first.
-3. Activate **Tumblr to Minimalio Portfolio** through the 'Plugins' menu in WordPress.
+2. Activate **Tumblr to Minimalio Portfolio** through the 'Plugins' menu in WordPress.
+3. (Optional) Activate the **Minimalio Portfolio** plugin if you want to import into the Portfolio post type.
 4. Go to **Tools → Import → Tumblr to Minimalio Portfolio**.
 
 == Configuration ==

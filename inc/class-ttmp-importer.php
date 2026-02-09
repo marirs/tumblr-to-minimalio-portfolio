@@ -20,6 +20,7 @@ class TTMP_Importer {
 	const OPTION_AI_CATEGORIES_MODE  = 'ttmp_ai_categories_mode';
 	const OPTION_AI_ORDER            = 'ttmp_ai_service_order';
 	const OPTION_AI_TEXT_ORDER       = 'ttmp_ai_text_order';
+	const OPTION_POST_TYPE           = 'ttmp_post_type';
 	const OPTION_POST_STATUS         = 'ttmp_post_status';
 	const OPTION_POST_AUTHOR         = 'ttmp_post_author';
 
@@ -139,6 +140,16 @@ class TTMP_Importer {
 		update_option( self::OPTION_AI_CATEGORIES, isset( $_POST['ttmp_ai_categories'] ) ? 1 : 0 );
 		$cat_mode = isset( $_POST['ttmp_ai_categories_mode'] ) ? sanitize_text_field( wp_unslash( $_POST['ttmp_ai_categories_mode'] ) ) : 'existing';
 		update_option( self::OPTION_AI_CATEGORIES_MODE, $cat_mode );
+
+		// Post type
+		$post_type = isset( $_POST['ttmp_post_type'] ) ? sanitize_text_field( wp_unslash( $_POST['ttmp_post_type'] ) ) : 'portfolio';
+		if ( ! in_array( $post_type, [ 'portfolio', 'post' ], true ) ) {
+			$post_type = 'portfolio';
+		}
+		if ( 'portfolio' === $post_type && ! post_type_exists( 'portfolio' ) ) {
+			$post_type = 'post';
+		}
+		update_option( self::OPTION_POST_TYPE, $post_type );
 
 		// Post status
 		$post_status = isset( $_POST['ttmp_post_status'] ) ? sanitize_text_field( wp_unslash( $_POST['ttmp_post_status'] ) ) : 'publish';
@@ -401,6 +412,31 @@ class TTMP_Importer {
 				<div class="ttmp-settings-section">
 					<h2><?php esc_html_e( 'Import Settings', 'tumblr-to-minimalio-portfolio' ); ?></h2>
 					<table class="form-table">
+						<tr>
+							<th><?php esc_html_e( 'Import Into', 'tumblr-to-minimalio-portfolio' ); ?></th>
+							<td>
+								<?php
+								$has_portfolio = post_type_exists( 'portfolio' );
+								$post_type     = get_option( self::OPTION_POST_TYPE, $has_portfolio ? 'portfolio' : 'post' );
+								if ( ! $has_portfolio && 'portfolio' === $post_type ) {
+									$post_type = 'post';
+								}
+								?>
+								<fieldset>
+									<label<?php echo $has_portfolio ? '' : ' class="ttmp-option-disabled"'; ?>>
+										<input type="radio" name="ttmp_post_type" value="portfolio" <?php checked( $post_type, 'portfolio' ); ?> <?php disabled( ! $has_portfolio ); ?> />
+										<?php esc_html_e( 'Minimalio Portfolio — imports into the Portfolio custom post type', 'tumblr-to-minimalio-portfolio' ); ?>
+										<?php if ( ! $has_portfolio ) : ?>
+											<em class="description">(<?php esc_html_e( 'Minimalio Portfolio plugin not active', 'tumblr-to-minimalio-portfolio' ); ?>)</em>
+										<?php endif; ?>
+									</label><br/><br/>
+									<label>
+										<input type="radio" name="ttmp_post_type" value="post" <?php checked( $post_type, 'post' ); ?> />
+										<?php esc_html_e( 'WordPress Posts — imports into standard blog posts', 'tumblr-to-minimalio-portfolio' ); ?>
+									</label>
+								</fieldset>
+							</td>
+						</tr>
 						<tr>
 							<th><?php esc_html_e( 'Post Status', 'tumblr-to-minimalio-portfolio' ); ?></th>
 							<td>
@@ -753,9 +789,15 @@ class TTMP_Importer {
 		$post_date_gmt = gmdate( 'Y-m-d H:i:s', $timestamp );
 		$post_status   = get_option( self::OPTION_POST_STATUS, 'publish' );
 		$post_author   = absint( get_option( self::OPTION_POST_AUTHOR, get_current_user_id() ) );
+		$target_type   = get_option( self::OPTION_POST_TYPE, 'portfolio' );
+		if ( 'portfolio' === $target_type && ! post_type_exists( 'portfolio' ) ) {
+			$target_type = 'post';
+		}
+		$tag_taxonomy = 'portfolio' === $target_type ? 'portfolio-tags' : 'post_tag';
+		$cat_taxonomy = 'portfolio' === $target_type ? 'portfolio-categories' : 'category';
 
 		$post_id = wp_insert_post( [
-			'post_type'     => 'portfolio',
+			'post_type'     => $target_type,
 			'post_title'    => $title,
 			'post_content'  => $content,
 			'post_status'   => $post_status,
@@ -786,31 +828,31 @@ class TTMP_Importer {
 		if ( ! empty( $tags ) ) {
 			$tag_ids = [];
 			foreach ( $tags as $tag_name ) {
-				$term = term_exists( $tag_name, 'portfolio-tags' );
+				$term = term_exists( $tag_name, $tag_taxonomy );
 				if ( ! $term ) {
-					$term = wp_insert_term( $tag_name, 'portfolio-tags' );
+					$term = wp_insert_term( $tag_name, $tag_taxonomy );
 				}
 				if ( ! is_wp_error( $term ) ) {
 					$tag_ids[] = (int) ( is_array( $term ) ? $term['term_id'] : $term );
 				}
 			}
 			if ( ! empty( $tag_ids ) ) {
-				wp_set_object_terms( $post_id, $tag_ids, 'portfolio-tags' );
+				wp_set_object_terms( $post_id, $tag_ids, $tag_taxonomy );
 			}
 		}
 
 		// AI category
 		if ( $assign_categories && $ai_result && ! empty( $ai_result['category'] ) ) {
 			$cat_name = $ai_result['category'];
-			$cat_term = term_exists( $cat_name, 'portfolio-categories' );
+			$cat_term = term_exists( $cat_name, $cat_taxonomy );
 			$can_create = 'create' === get_option( self::OPTION_AI_CATEGORIES_MODE, 'existing' );
 
 			if ( ! $cat_term && $can_create ) {
-				$cat_term = wp_insert_term( $cat_name, 'portfolio-categories' );
+				$cat_term = wp_insert_term( $cat_name, $cat_taxonomy );
 			}
 			if ( $cat_term && ! is_wp_error( $cat_term ) ) {
 				$cat_id = (int) ( is_array( $cat_term ) ? $cat_term['term_id'] : $cat_term );
-				wp_set_object_terms( $post_id, [ $cat_id ], 'portfolio-categories' );
+				wp_set_object_terms( $post_id, [ $cat_id ], $cat_taxonomy );
 			}
 		}
 
@@ -1025,8 +1067,12 @@ class TTMP_Importer {
 	}
 
 	private static function find_existing_post( $tumblr_id ) {
+		$target_type = get_option( self::OPTION_POST_TYPE, 'portfolio' );
+		if ( 'portfolio' === $target_type && ! post_type_exists( 'portfolio' ) ) {
+			$target_type = 'post';
+		}
 		// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-		$q = new WP_Query( [ 'post_type' => 'portfolio', 'meta_key' => '_tumblr_post_id', 'meta_value' => $tumblr_id, 'posts_per_page' => 1, 'post_status' => 'any' ] );
+		$q = new WP_Query( [ 'post_type' => $target_type, 'meta_key' => '_tumblr_post_id', 'meta_value' => $tumblr_id, 'posts_per_page' => 1, 'post_status' => 'any' ] );
 		return $q->have_posts() ? $q->posts[0] : null;
 	}
 

@@ -63,10 +63,10 @@ add_filter( 'plugin_action_links_' . TTMP_PLUGIN_BASENAME, 'ttmp_plugin_action_l
  */
 function ttmp_dependency_notice() {
 	?>
-	<div class="notice notice-error">
+	<div class="notice notice-info is-dismissible">
 		<p>
 			<strong><?php esc_html_e( 'Tumblr to Minimalio Portfolio', 'tumblr-to-minimalio-portfolio' ); ?>:</strong>
-			<?php esc_html_e( 'This plugin requires the Minimalio Portfolio plugin to be installed and activated.', 'tumblr-to-minimalio-portfolio' ); ?>
+			<?php esc_html_e( 'The Minimalio Portfolio plugin is not active. You can still import into standard WordPress posts. To import into the Portfolio post type, install and activate the Minimalio Portfolio plugin.', 'tumblr-to-minimalio-portfolio' ); ?>
 		</p>
 	</div>
 	<?php
