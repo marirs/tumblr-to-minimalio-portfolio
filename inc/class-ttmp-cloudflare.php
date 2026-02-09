@@ -77,13 +77,13 @@ class TTMP_Cloudflare extends TTMP_AI_Service {
 			return new WP_Error( 'not_configured', 'Cloudflare Workers AI not configured.' );
 		}
 
-		$prompt = $this->build_prompt( $tags, $existing_categories, $can_create_categories );
-
-		// Download image and encode as base64 data URL
-		$image_base64 = $this->get_image_base64( $image_url );
+		// $image_url is pre-downloaded base64 data when called from the chain
+		$image_base64 = $image_url;
 		if ( empty( $image_base64 ) ) {
-			return new WP_Error( 'image_download_failed', 'Could not download image for Cloudflare analysis.' );
+			return new WP_Error( 'no_image_data', 'No image data provided for Cloudflare analysis.' );
 		}
+
+		$prompt = $this->build_prompt( $tags, $existing_categories, $can_create_categories );
 
 		$url = self::API_BASE . rawurlencode( $account_id ) . '/ai/run/' . self::MODEL;
 
@@ -135,22 +135,4 @@ class TTMP_Cloudflare extends TTMP_AI_Service {
 		return $this->parse_response( $raw_text );
 	}
 
-	/**
-	 * Download an image and return its base64 encoding
-	 */
-	private function get_image_base64( $url ) {
-		$tmp = download_url( $url, 30 );
-		if ( is_wp_error( $tmp ) ) {
-			return '';
-		}
-
-		$data = file_get_contents( $tmp );
-		@unlink( $tmp );
-
-		if ( empty( $data ) ) {
-			return '';
-		}
-
-		return base64_encode( $data );
-	}
 }

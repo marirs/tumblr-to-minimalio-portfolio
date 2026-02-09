@@ -247,6 +247,7 @@ class TTMP_Importer {
 										<button type="button" class="button ttmp-test-api" data-service="gemini"><?php esc_html_e( 'Test', 'tumblr-to-minimalio' ); ?></button>
 										<span class="ttmp-test-result" data-service="gemini"></span>
 										<p class="description"><?php printf( esc_html__( 'Get your free API key in 30 seconds from %s', 'tumblr-to-minimalio' ), '<a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>' ); ?></p>
+										<p class="description"><em><?php esc_html_e( '(Optional — leave blank if you don\'t want to use this service. Also powers Gemini text-only fallback.)', 'tumblr-to-minimalio' ); ?></em></p>
 									</td>
 								</tr>
 							</table>
@@ -266,6 +267,7 @@ class TTMP_Importer {
 										<button type="button" class="button ttmp-test-api" data-service="cloudflare"><?php esc_html_e( 'Test', 'tumblr-to-minimalio' ); ?></button>
 										<span class="ttmp-test-result" data-service="cloudflare"></span>
 										<p class="description"><?php printf( esc_html__( 'Go to %1$s → create a token → use the "Edit Cloudflare Workers" template (or create a custom token with %2$s permission). Copy the generated token.', 'tumblr-to-minimalio' ), '<a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank">My Profile → API Tokens</a>', '<strong>Account.Workers AI:Read</strong>' ); ?></p>
+										<p class="description"><em><?php esc_html_e( '(Optional — leave blank if you don\'t want to use this service.)', 'tumblr-to-minimalio' ); ?></em></p>
 									</td>
 								</tr>
 							</table>
@@ -277,7 +279,8 @@ class TTMP_Importer {
 										<input type="password" id="ttmp_openai_key" name="ttmp_openai_key" value="<?php echo esc_attr( $openai_key ); ?>" class="regular-text" />
 										<button type="button" class="button ttmp-test-api" data-service="openai"><?php esc_html_e( 'Test', 'tumblr-to-minimalio' ); ?></button>
 										<span class="ttmp-test-result" data-service="openai"></span>
-										<p class="description"><?php printf( esc_html__( 'Get your API key from %s', 'tumblr-to-minimalio' ), '<a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a>' ); ?></p>
+										<p class="description"><?php printf( esc_html__( 'Get your API key from %s. Pay-per-use, no subscription needed.', 'tumblr-to-minimalio' ), '<a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a>' ); ?></p>
+										<p class="description"><em><?php esc_html_e( '(Optional — leave blank if you don\'t want to use this service. Also powers ChatGPT text-only fallback.)', 'tumblr-to-minimalio' ); ?></em></p>
 									</td>
 								</tr>
 							</table>
@@ -412,11 +415,6 @@ class TTMP_Importer {
 
 				<div class="ttmp-import-options">
 					<h3><?php esc_html_e( 'Import Options', 'tumblr-to-minimalio' ); ?></h3>
-					<label class="ttmp-option-label">
-						<input type="checkbox" id="ttmp-embed-in-content" value="1" />
-						<?php esc_html_e( 'Also embed images as Gutenberg blocks in post content', 'tumblr-to-minimalio' ); ?>
-						<span class="description"><?php esc_html_e( '(When unchecked, images are only set as featured image)', 'tumblr-to-minimalio' ); ?></span>
-					</label>
 
 					<?php if ( $use_ai && $chain->has_ai_services() ) : ?>
 					<label class="ttmp-option-label">
@@ -593,7 +591,6 @@ class TTMP_Importer {
 		$thumbnail = isset( $post_data['thumbnail'] ) ? esc_url_raw( $post_data['thumbnail'] ) : '';
 
 		// Import options
-		$embed_in_content  = isset( $_POST['embed_in_content'] ) && '1' === $_POST['embed_in_content'];
 		$use_ai            = isset( $_POST['use_ai'] ) && '1' === $_POST['use_ai'];
 		$assign_categories = isset( $_POST['assign_categories'] ) && '1' === $_POST['assign_categories'];
 
@@ -639,18 +636,28 @@ class TTMP_Importer {
 		}
 
 		// Build content
+		// 1 image = featured image only (no embed). 2+ images = first is featured, rest are Gutenberg blocks.
 		$content = '';
 		if ( 'photo' === $type || ( ! empty( $images ) && 'video' !== $type ) ) {
-			if ( $embed_in_content && ! empty( $images ) ) {
-				if ( count( $images ) > 1 ) {
+			if ( count( $images ) > 1 ) {
+				$extra_images = array_slice( $images, 1 );
+				if ( count( $extra_images ) > 1 ) {
 					$content .= "<!-- wp:gallery -->\n<figure class=\"wp-block-gallery has-nested-images columns-default is-cropped\">\n";
-					foreach ( $images as $img_url ) {
+					foreach ( $extra_images as $img_url ) {
 						$content .= "<!-- wp:image -->\n<figure class=\"wp-block-image\"><img src=\"" . esc_url( $img_url ) . "\" alt=\"\"/></figure>\n<!-- /wp:image -->\n";
 					}
 					$content .= "</figure>\n<!-- /wp:gallery -->\n";
 				} else {
-					$content .= "<!-- wp:image -->\n<figure class=\"wp-block-image\"><img src=\"" . esc_url( $images[0] ) . "\" alt=\"\"/></figure>\n<!-- /wp:image -->\n";
+					$content .= "<!-- wp:image -->\n<figure class=\"wp-block-image\"><img src=\"" . esc_url( $extra_images[0] ) . "\" alt=\"\"/></figure>\n<!-- /wp:image -->\n";
 				}
+			}
+			if ( ! empty( $description ) && ! empty( $images ) ) {
+				// Strip img tags from description to avoid duplicate images (Tumblr often includes them in both photos array and caption HTML)
+				$description = preg_replace( '/<img[^>]*>/i', '', $description );
+				// Remove empty figure/a tags left behind after stripping images
+				$description = preg_replace( '/<a[^>]*>\s*<\/a>/i', '', $description );
+				$description = preg_replace( '/<figure[^>]*>\s*<\/figure>/i', '', $description );
+				$description = trim( $description );
 			}
 			if ( ! empty( $description ) ) {
 				$content .= $description;

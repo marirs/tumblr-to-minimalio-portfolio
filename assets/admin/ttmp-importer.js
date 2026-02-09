@@ -227,7 +227,6 @@
 			$progressBar.css('width', pct + '%');
 			$progressText.text(ttmpImporter.i18n.importing + ' ' + done + ' / ' + total);
 
-			var embedInContent = $('#ttmp-embed-in-content').is(':checked') ? '1' : '0';
 			var useAI = $('#ttmp-use-ai').is(':checked') ? '1' : '0';
 			var assignCategories = $('#ttmp-assign-categories').is(':checked') ? '1' : '0';
 
@@ -238,7 +237,6 @@
 					action: 'ttmp_import_post',
 					nonce: ttmpImporter.nonce,
 					post_data: post,
-					embed_in_content: embedInContent,
 					use_ai: useAI,
 					assign_categories: assignCategories,
 				},

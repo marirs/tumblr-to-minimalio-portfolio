@@ -154,27 +154,51 @@ class TTMP_AI_Chain {
 		$cat_create = $assign_categories ? $can_create_categories : false;
 
 		// Tier 1: Vision AI services (image-based)
-		foreach ( $this->vision_services as $service ) {
-			if ( $service->is_rate_limited() ) {
-				continue;
-			}
-
-			$result = $service->generate_seo_data( $image_url, $tags, $cat_args, $cat_create );
-
-			if ( ! is_wp_error( $result ) && ! empty( $result['title'] ) ) {
-				$result['source'] = $service->get_name();
-				if ( ! $assign_categories ) {
-					$result['category'] = null;
+		// Pre-download the image once so each vision service doesn't re-download it
+		$image_base64 = '';
+		if ( ! empty( $image_url ) && ! empty( $this->vision_services ) ) {
+			$tmp = download_url( $image_url, 30 );
+			if ( ! is_wp_error( $tmp ) ) {
+				$raw = file_get_contents( $tmp );
+				@unlink( $tmp );
+				if ( ! empty( $raw ) ) {
+					$image_base64 = base64_encode( $raw );
 				}
-				if ( ! empty( $errors ) ) {
-					$result['ai_errors'] = $errors;
-				}
-				return $result;
 			}
+		}
 
-			if ( is_wp_error( $result ) ) {
-				$errors[] = $service->get_name() . ': ' . $result->get_error_message();
+		if ( ! empty( $image_base64 ) ) {
+			error_log( '[TTMP] Image downloaded OK (' . strlen( $image_base64 ) . ' bytes base64). Trying ' . count( $this->vision_services ) . ' vision service(s).' );
+			foreach ( $this->vision_services as $service ) {
+				if ( $service->is_rate_limited() ) {
+					error_log( '[TTMP] ' . $service->get_name() . ': skipped (rate-limited).' );
+					continue;
+				}
+
+				error_log( '[TTMP] Trying vision service: ' . $service->get_name() );
+				$result = $service->generate_seo_data( $image_base64, $tags, $cat_args, $cat_create );
+
+				if ( ! is_wp_error( $result ) && ! empty( $result['title'] ) ) {
+					error_log( '[TTMP] ' . $service->get_name() . ' succeeded: "' . $result['title'] . '"' );
+					$result['source'] = $service->get_name();
+					if ( ! $assign_categories ) {
+						$result['category'] = null;
+					}
+					if ( ! empty( $errors ) ) {
+						$result['ai_errors'] = $errors;
+					}
+					return $result;
+				}
+
+				if ( is_wp_error( $result ) ) {
+					$err_msg = $service->get_name() . ': ' . $result->get_error_message();
+					error_log( '[TTMP] Vision FAILED — ' . $err_msg );
+					$errors[] = $err_msg;
+				}
 			}
+		} elseif ( ! empty( $image_url ) ) {
+			error_log( '[TTMP] Image download FAILED for: ' . $image_url );
+			$errors[] = 'Image download failed — skipping vision AI, trying text AI.';
 		}
 
 		// Tier 2: Text-only AI services (tag-based)

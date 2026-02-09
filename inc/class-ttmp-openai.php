@@ -69,6 +69,12 @@ class TTMP_OpenAI extends TTMP_AI_Service {
 			return new WP_Error( 'not_configured', 'OpenAI API key not configured.' );
 		}
 
+		// $image_url is pre-downloaded base64 data when called from the chain
+		$image_base64 = $image_url;
+		if ( empty( $image_base64 ) ) {
+			return new WP_Error( 'no_image_data', 'No image data provided for OpenAI analysis.' );
+		}
+
 		$prompt = $this->build_prompt( $tags, $existing_categories, $can_create_categories );
 
 		$body = [
@@ -84,7 +90,7 @@ class TTMP_OpenAI extends TTMP_AI_Service {
 						[
 							'type'      => 'image_url',
 							'image_url' => [
-								'url'    => $image_url,
+								'url'    => 'data:image/jpeg;base64,' . $image_base64,
 								'detail' => 'low',
 							],
 						],
@@ -129,4 +135,5 @@ class TTMP_OpenAI extends TTMP_AI_Service {
 
 		return $this->parse_response( $raw_text );
 	}
+
 }
