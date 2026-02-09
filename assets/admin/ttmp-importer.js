@@ -21,6 +21,8 @@
 
 		$btn.prop('disabled', true).text(ttmpImporter.i18n.fetching);
 		$progress.show();
+		$('#ttmp-resume-notice').remove();
+		try { localStorage.removeItem('ttmp_posts'); localStorage.removeItem('ttmp_imported_ids'); } catch(e) {}
 		allPosts = [];
 
 		fetchType('photo', 0, function () {
@@ -50,6 +52,12 @@
 						alert(ttmpImporter.i18n.noPostsFound);
 						return;
 					}
+
+					// Save to localStorage for resume
+					try {
+						localStorage.setItem('ttmp_posts', JSON.stringify(allPosts));
+						localStorage.setItem('ttmp_imported_ids', JSON.stringify([]));
+					} catch(e) {}
 
 					renderPostsList();
 				});
@@ -249,6 +257,13 @@
 						if (status === 'imported') {
 							$item.addClass('imported');
 							$item.append('<span class="ttmp-post-status status-imported">' + ttmpImporter.i18n.imported + '</span>');
+
+							// Track imported ID in localStorage for resume
+							try {
+								var ids = JSON.parse(localStorage.getItem('ttmp_imported_ids')) || [];
+								if (ids.indexOf(post.tumblr_id) === -1) { ids.push(post.tumblr_id); }
+								localStorage.setItem('ttmp_imported_ids', JSON.stringify(ids));
+							} catch(ex) {}
 
 							// Update the title in the post list with the final title used
 							if (response.data.title) {
@@ -454,6 +469,43 @@
 	// =========================================================================
 
 	$(document).ready(function () {
+		// Restore posts from localStorage if available (resume import)
+		try {
+			var saved = localStorage.getItem('ttmp_posts');
+			if (saved) {
+				var parsed = JSON.parse(saved);
+				if (parsed && parsed.length > 0) {
+					// Restore imported IDs and mark posts
+					var importedIds = [];
+					try { importedIds = JSON.parse(localStorage.getItem('ttmp_imported_ids')) || []; } catch(ex) {}
+					var idSet = {};
+					$.each(importedIds, function(_, id) { idSet[id] = true; });
+					$.each(parsed, function(_, p) {
+						if (idSet[p.tumblr_id]) { p.already_imported = true; }
+					});
+					allPosts = parsed;
+					renderPostsList();
+					var importedCount = importedIds.length;
+					var remaining = parsed.length - importedCount;
+					$('#ttmp-fetch').after(
+						'<span id="ttmp-resume-notice" style="margin-left:12px;color:#2271b1;font-style:italic;">' +
+						parsed.length + ' posts restored (' + importedCount + ' already imported, ' + remaining + ' remaining). ' +
+						'<a href="#" id="ttmp-clear-session">Clear &amp; re-fetch</a></span>'
+					);
+				}
+			}
+		} catch(e) {}
+
+		// Clear saved session
+		$(document).on('click', '#ttmp-clear-session', function (e) {
+			e.preventDefault();
+			try { localStorage.removeItem('ttmp_posts'); localStorage.removeItem('ttmp_imported_ids'); } catch(ex) {}
+			allPosts = [];
+			$('#ttmp-posts-list').empty();
+			$('#ttmp-results').hide();
+			$('#ttmp-resume-notice').remove();
+		});
+
 		// Fetch
 		$('#ttmp-fetch').on('click', fetchAllPosts);
 

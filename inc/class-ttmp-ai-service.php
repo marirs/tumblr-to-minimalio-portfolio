@@ -98,6 +98,7 @@ abstract class TTMP_AI_Service {
 		$prompt .= "Return ONLY a JSON object with these exact keys:\n";
 		$prompt .= "- \"title\": A concise, descriptive SEO title (max 60 characters, no quotes around it)\n";
 		$prompt .= "- \"description\": An engaging SEO meta description (max 254 characters)\n";
+		$prompt .= "- \"alt_text\": A concise, descriptive alt text for the image (max 125 characters, for accessibility)\n";
 
 		if ( ! empty( $existing_categories ) || $can_create_categories ) {
 			$prompt .= "- \"category\": ";
@@ -154,10 +155,16 @@ abstract class TTMP_AI_Service {
 				$cat = $m[1];
 			}
 
+			$alt = '';
+			if ( preg_match( '/"alt_text"\s*:\s*"([^"]+)"/i', $cleaned, $m ) ) {
+				$alt = $m[1];
+			}
+
 			if ( ! empty( $title ) ) {
 				return [
 					'title'       => sanitize_text_field( substr( $title, 0, 60 ) ),
 					'description' => sanitize_text_field( substr( $desc, 0, 254 ) ),
+					'alt_text'    => sanitize_text_field( substr( $alt, 0, 125 ) ),
 					'category'    => $cat !== null ? sanitize_text_field( $cat ) : null,
 				];
 			}
@@ -168,6 +175,7 @@ abstract class TTMP_AI_Service {
 		return [
 			'title'       => isset( $data['title'] ) ? sanitize_text_field( substr( $data['title'], 0, 60 ) ) : '',
 			'description' => isset( $data['description'] ) ? sanitize_text_field( substr( $data['description'], 0, 254 ) ) : '',
+			'alt_text'    => isset( $data['alt_text'] ) ? sanitize_text_field( substr( $data['alt_text'], 0, 125 ) ) : '',
 			'category'    => isset( $data['category'] ) && $data['category'] !== null ? sanitize_text_field( $data['category'] ) : null,
 		];
 	}

@@ -9,8 +9,11 @@ A WordPress plugin that imports photos and videos from a Tumblr blog into the [M
 - **Smart Image Handling** — Single image posts get a featured image only; multi-image posts get the first as featured and the rest as Gutenberg gallery blocks.
 - **Video Support** — Embeds Vimeo and other video posts with proper Gutenberg embed blocks.
 - **Duplicate Detection** — Skips posts that have already been imported.
+- **Resume Import** — If the browser is closed mid-import, the fetched post list is restored on the next visit so you can continue where you left off.
 - **Tag Preservation** — Maps Tumblr tags to Portfolio Tags taxonomy.
 - **Original Date** — Preserves the original Tumblr post date.
+- **Post Status** — Choose to import posts as Published (live immediately) or Draft (review first).
+- **Post Author** — Assign all imported posts to a specific WordPress user.
 
 ### AI-Powered SEO Generation
 
@@ -18,6 +21,7 @@ When enabled, the plugin uses AI to generate SEO-optimized metadata for imported
 
 - **SEO Title** — max 60 characters, concise and descriptive
 - **SEO Description** — max 254 characters, engaging meta description
+- **Image Alt Text** — max 125 characters, AI-generated for accessibility
 
 The AI system uses a **three-tier failover chain**:
 
@@ -74,6 +78,11 @@ Configure one or more AI services to enable SEO generation:
 ### Service Priority
 
 Drag and drop the AI service cards on the settings page to set the failover priority. The order determines which service is tried first. If it fails or is rate-limited, the next service in the chain is used.
+
+### Import Settings
+
+- **Post Status** — Choose between `Published` (posts go live immediately) or `Draft` (review before publishing).
+- **Post Author** — Select which WordPress user the imported posts should be assigned to.
 
 ## Usage
 

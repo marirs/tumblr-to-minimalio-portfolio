@@ -20,6 +20,8 @@ class TTMP_Importer {
 	const OPTION_AI_CATEGORIES_MODE  = 'ttmp_ai_categories_mode';
 	const OPTION_AI_ORDER            = 'ttmp_ai_service_order';
 	const OPTION_AI_TEXT_ORDER       = 'ttmp_ai_text_order';
+	const OPTION_POST_STATUS         = 'ttmp_post_status';
+	const OPTION_POST_AUTHOR         = 'ttmp_post_author';
 
 	public static function init() {
 		add_action( 'admin_init', [ __CLASS__, 'register_importer' ] );
@@ -135,6 +137,17 @@ class TTMP_Importer {
 		update_option( self::OPTION_AI_CATEGORIES, isset( $_POST['ttmp_ai_categories'] ) ? 1 : 0 );
 		$cat_mode = isset( $_POST['ttmp_ai_categories_mode'] ) ? sanitize_text_field( $_POST['ttmp_ai_categories_mode'] ) : 'existing';
 		update_option( self::OPTION_AI_CATEGORIES_MODE, $cat_mode );
+
+		// Post status
+		$post_status = isset( $_POST['ttmp_post_status'] ) ? sanitize_text_field( $_POST['ttmp_post_status'] ) : 'publish';
+		if ( ! in_array( $post_status, [ 'publish', 'draft' ], true ) ) {
+			$post_status = 'publish';
+		}
+		update_option( self::OPTION_POST_STATUS, $post_status );
+
+		// Post author
+		$post_author = isset( $_POST['ttmp_post_author'] ) ? absint( $_POST['ttmp_post_author'] ) : get_current_user_id();
+		update_option( self::OPTION_POST_AUTHOR, $post_author );
 
 		TTMP_AI_Chain::reset();
 	}
@@ -368,6 +381,44 @@ class TTMP_Importer {
 							<p class="description"><?php esc_html_e( 'Services are tried in order. If one fails or is rate-limited, the next one is used.', 'tumblr-to-minimalio' ); ?></p>
 						</div>
 					</div>
+				</div>
+
+				<div class="ttmp-settings-section">
+					<h2><?php esc_html_e( 'Import Settings', 'tumblr-to-minimalio' ); ?></h2>
+					<table class="form-table">
+						<tr>
+							<th><?php esc_html_e( 'Post Status', 'tumblr-to-minimalio' ); ?></th>
+							<td>
+								<?php $post_status = get_option( self::OPTION_POST_STATUS, 'publish' ); ?>
+								<fieldset>
+									<label>
+										<input type="radio" name="ttmp_post_status" value="publish" <?php checked( $post_status, 'publish' ); ?> />
+										<?php esc_html_e( 'Published — posts go live immediately', 'tumblr-to-minimalio' ); ?>
+									</label><br/><br/>
+									<label>
+										<input type="radio" name="ttmp_post_status" value="draft" <?php checked( $post_status, 'draft' ); ?> />
+										<?php esc_html_e( 'Draft — review posts before publishing', 'tumblr-to-minimalio' ); ?>
+									</label>
+								</fieldset>
+							</td>
+						</tr>
+						<tr>
+							<th><label for="ttmp_post_author"><?php esc_html_e( 'Post Author', 'tumblr-to-minimalio' ); ?></label></th>
+							<td>
+								<?php
+								$post_author = get_option( self::OPTION_POST_AUTHOR, get_current_user_id() );
+								wp_dropdown_users( [
+									'name'             => 'ttmp_post_author',
+									'id'               => 'ttmp_post_author',
+									'selected'         => $post_author,
+									'who'              => 'authors',
+									'show_option_none' => false,
+								] );
+								?>
+								<p class="description"><?php esc_html_e( 'All imported posts will be assigned to this author.', 'tumblr-to-minimalio' ); ?></p>
+							</td>
+						</tr>
+					</table>
 				</div>
 
 				<?php submit_button( __( 'Save Settings & Continue', 'tumblr-to-minimalio' ) ); ?>
@@ -683,12 +734,15 @@ class TTMP_Importer {
 		// Create post
 		$post_date     = date( 'Y-m-d H:i:s', $timestamp );
 		$post_date_gmt = gmdate( 'Y-m-d H:i:s', $timestamp );
+		$post_status   = get_option( self::OPTION_POST_STATUS, 'publish' );
+		$post_author   = absint( get_option( self::OPTION_POST_AUTHOR, get_current_user_id() ) );
 
 		$post_id = wp_insert_post( [
 			'post_type'     => 'portfolio',
 			'post_title'    => $title,
 			'post_content'  => $content,
-			'post_status'   => 'publish',
+			'post_status'   => $post_status,
+			'post_author'   => $post_author,
 			'post_date'     => $post_date,
 			'post_date_gmt' => $post_date_gmt,
 			'post_name'     => ! empty( $slug ) ? $slug : sanitize_title( $title ),
@@ -743,7 +797,10 @@ class TTMP_Importer {
 			}
 		}
 
-		// Featured image + optional content rebuild
+		// AI-generated alt text
+		$ai_alt_text = ( $ai_result && ! empty( $ai_result['alt_text'] ) ) ? $ai_result['alt_text'] : $title;
+
+		// Featured image + sideload extra images with proper attachment IDs
 		$featured_image_set = false;
 		$image_errors = [];
 
@@ -753,19 +810,19 @@ class TTMP_Importer {
 				$image_errors[] = 'Featured: ' . $attach_id->get_error_message();
 			} else {
 				set_post_thumbnail( $post_id, $attach_id );
+				update_post_meta( $attach_id, '_wp_attachment_image_alt', $ai_alt_text );
 				$featured_image_set = true;
 			}
 
-			if ( $embed_in_content ) {
+			// Sideload extra images and rebuild content with proper attachment IDs and alt text
+			if ( count( $images ) > 1 ) {
 				$att_ids = [];
-				if ( ! is_wp_error( $attach_id ) ) {
-					$att_ids[] = $attach_id;
-				}
 				for ( $i = 1; $i < count( $images ); $i++ ) {
 					$extra = self::sideload_image( $images[ $i ], $post_id, $title . ' ' . ( $i + 1 ) );
 					if ( is_wp_error( $extra ) ) {
 						$image_errors[] = 'Image ' . ( $i + 1 ) . ': ' . $extra->get_error_message();
 					} else {
+						update_post_meta( $extra, '_wp_attachment_image_alt', $ai_alt_text );
 						$att_ids[] = $extra;
 					}
 				}
@@ -775,12 +832,12 @@ class TTMP_Importer {
 						$new_content .= "<!-- wp:gallery -->\n<figure class=\"wp-block-gallery has-nested-images columns-default is-cropped\">\n";
 						foreach ( $att_ids as $aid ) {
 							$aurl = wp_get_attachment_url( $aid );
-							$new_content .= "<!-- wp:image {\"id\":" . $aid . "} -->\n<figure class=\"wp-block-image\"><img src=\"" . esc_url( $aurl ) . "\" alt=\"\" class=\"wp-image-" . $aid . "\"/></figure>\n<!-- /wp:image -->\n";
+							$new_content .= "<!-- wp:image {\"id\":" . $aid . "} -->\n<figure class=\"wp-block-image\"><img src=\"" . esc_url( $aurl ) . "\" alt=\"" . esc_attr( $ai_alt_text ) . "\" class=\"wp-image-" . $aid . "\"/></figure>\n<!-- /wp:image -->\n";
 						}
 						$new_content .= "</figure>\n<!-- /wp:gallery -->\n";
 					} else {
 						$aurl = wp_get_attachment_url( $att_ids[0] );
-						$new_content .= "<!-- wp:image {\"id\":" . $att_ids[0] . "} -->\n<figure class=\"wp-block-image\"><img src=\"" . esc_url( $aurl ) . "\" alt=\"\" class=\"wp-image-" . $att_ids[0] . "\"/></figure>\n<!-- /wp:image -->\n";
+						$new_content .= "<!-- wp:image {\"id\":" . $att_ids[0] . "} -->\n<figure class=\"wp-block-image\"><img src=\"" . esc_url( $aurl ) . "\" alt=\"" . esc_attr( $ai_alt_text ) . "\" class=\"wp-image-" . $att_ids[0] . "\"/></figure>\n<!-- /wp:image -->\n";
 					}
 					if ( ! empty( $description ) ) {
 						$new_content .= "\n" . $description;
