@@ -109,7 +109,7 @@ class TTMP_ChatGPT_Text extends TTMP_AI_Service {
 		$prompt .= "Tags: " . implode( ', ', $tags ) . "\n\n";
 		$prompt .= "Return ONLY a JSON object with these exact keys:\n";
 		$prompt .= "- \"title\": A creative, descriptive SEO title for this photograph (max 60 characters). Make it sound natural and engaging, not just a list of tags.\n";
-		$prompt .= "- \"description\": An engaging SEO meta description (max 155 characters)\n";
+		$prompt .= "- \"description\": An engaging SEO meta description (max 254 characters)\n";
 
 		if ( ! empty( $existing_categories ) || $can_create_categories ) {
 			$prompt .= "- \"category\": ";

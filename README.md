@@ -14,7 +14,12 @@ A WordPress plugin that imports photos and videos from a Tumblr blog into the [M
 
 ### AI-Powered SEO Generation
 
-When enabled, the plugin uses AI to generate SEO-optimized titles, descriptions, and categories for imported posts. The AI system uses a **three-tier failover chain**:
+When enabled, the plugin uses AI to generate SEO-optimized metadata for imported posts:
+
+- **SEO Title** — max 60 characters, concise and descriptive
+- **SEO Description** — max 254 characters, engaging meta description
+
+The AI system uses a **three-tier failover chain**:
 
 1. **Vision AI** (image + tags) — Sends the image to an AI vision model for the highest quality results.
    - **OpenAI** (GPT-4o-mini) — Pay-per-use (~$0.001/image). Highest quality.
