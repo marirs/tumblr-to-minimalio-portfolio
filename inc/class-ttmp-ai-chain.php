@@ -107,7 +107,7 @@ class TTMP_AI_Chain {
 		foreach ( $this->text_services as $service ) {
 			$names[] = $service->get_name();
 		}
-		$names[] = __( 'Tag fallback', 'tumblr-to-minimalio' );
+		$names[] = __( 'Tag fallback', 'tumblr-to-minimalio-portfolio' );
 		return $names;
 	}
 
@@ -164,7 +164,7 @@ class TTMP_AI_Chain {
 				$errors[] = 'Image download failed (' . $tmp->get_error_message() . ') — skipping vision AI.';
 			} else {
 				$raw = file_get_contents( $tmp );
-				@unlink( $tmp );
+				wp_delete_file( $tmp );
 				if ( ! empty( $raw ) ) {
 					$image_base64 = base64_encode( $raw );
 				} else {
@@ -236,7 +236,7 @@ class TTMP_AI_Chain {
 			$cat_create
 		);
 
-		$tag_result['source'] = __( 'Tag fallback', 'tumblr-to-minimalio' );
+		$tag_result['source'] = __( 'Tag fallback', 'tumblr-to-minimalio-portfolio' );
 
 		if ( ! $assign_categories ) {
 			$tag_result['category'] = null;

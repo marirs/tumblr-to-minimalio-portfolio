@@ -32,7 +32,7 @@ class TTMP_OpenAI extends TTMP_AI_Service {
 	public function test_connection() {
 		$key = get_option( self::OPTION_KEY, '' );
 		if ( empty( $key ) ) {
-			return [ 'success' => false, 'message' => __( 'No API key configured.', 'tumblr-to-minimalio' ) ];
+			return [ 'success' => false, 'message' => __( 'No API key configured.', 'tumblr-to-minimalio-portfolio' ) ];
 		}
 
 		$response = wp_remote_get( self::API_BASE . 'models', [
@@ -53,7 +53,7 @@ class TTMP_OpenAI extends TTMP_AI_Service {
 			return [ 'success' => false, 'message' => $msg ];
 		}
 
-		return [ 'success' => true, 'message' => __( 'Connected successfully to OpenAI.', 'tumblr-to-minimalio' ) ];
+		return [ 'success' => true, 'message' => __( 'Connected successfully to OpenAI.', 'tumblr-to-minimalio-portfolio' ) ];
 	}
 
 	/**

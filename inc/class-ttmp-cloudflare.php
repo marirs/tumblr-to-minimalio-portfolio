@@ -36,7 +36,7 @@ class TTMP_Cloudflare extends TTMP_AI_Service {
 		$api_token  = get_option( self::OPTION_API_TOKEN, '' );
 
 		if ( empty( $account_id ) || empty( $api_token ) ) {
-			return [ 'success' => false, 'message' => __( 'Account ID or API token not configured.', 'tumblr-to-minimalio' ) ];
+			return [ 'success' => false, 'message' => __( 'Account ID or API token not configured.', 'tumblr-to-minimalio-portfolio' ) ];
 		}
 
 		$url = self::API_BASE . rawurlencode( $account_id ) . '/ai/models/search';
@@ -59,7 +59,7 @@ class TTMP_Cloudflare extends TTMP_AI_Service {
 			return [ 'success' => false, 'message' => $msg ];
 		}
 
-		return [ 'success' => true, 'message' => __( 'Connected successfully to Cloudflare Workers AI.', 'tumblr-to-minimalio' ) ];
+		return [ 'success' => true, 'message' => __( 'Connected successfully to Cloudflare Workers AI.', 'tumblr-to-minimalio-portfolio' ) ];
 	}
 
 	/**

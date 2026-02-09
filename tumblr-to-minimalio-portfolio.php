@@ -8,7 +8,7 @@
  * Author URI:  https://github.com/marirs/tumblr-to-minimalio-portfolio
  * License:     GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: tumblr-to-minimalio
+ * Text Domain: tumblr-to-minimalio-portfolio
  * Domain Path: /languages
  * Requires at least: 5.8
  * Requires PHP: 7.4
@@ -52,7 +52,7 @@ add_action( 'init', 'ttmp_check_dependency', 20 );
  * Add "Run Importer" link on the Plugins page
  */
 function ttmp_plugin_action_links( $links ) {
-	$importer_link = '<a href="' . esc_url( admin_url( 'admin.php?import=ttmp-importer' ) ) . '">' . esc_html__( 'Run Importer', 'tumblr-to-minimalio' ) . '</a>';
+	$importer_link = '<a href="' . esc_url( admin_url( 'admin.php?import=ttmp-importer' ) ) . '">' . esc_html__( 'Run Importer', 'tumblr-to-minimalio-portfolio' ) . '</a>';
 	array_unshift( $links, $importer_link );
 	return $links;
 }
@@ -65,8 +65,8 @@ function ttmp_dependency_notice() {
 	?>
 	<div class="notice notice-error">
 		<p>
-			<strong><?php esc_html_e( 'Tumblr to Minimalio Portfolio', 'tumblr-to-minimalio' ); ?>:</strong>
-			<?php esc_html_e( 'This plugin requires the Minimalio Portfolio plugin to be installed and activated.', 'tumblr-to-minimalio' ); ?>
+			<strong><?php esc_html_e( 'Tumblr to Minimalio Portfolio', 'tumblr-to-minimalio-portfolio' ); ?>:</strong>
+			<?php esc_html_e( 'This plugin requires the Minimalio Portfolio plugin to be installed and activated.', 'tumblr-to-minimalio-portfolio' ); ?>
 		</p>
 	</div>
 	<?php
