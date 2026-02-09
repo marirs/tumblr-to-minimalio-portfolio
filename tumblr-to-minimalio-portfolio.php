@@ -5,7 +5,7 @@
  * Description: Import photos and videos from Tumblr into the Minimalio Portfolio custom post type. Supports AI-powered SEO title, description, and category generation via Google Gemini, Cloudflare Workers AI, and OpenAI.
  * Version:     1.0.0
  * Author:      Sriram Govindan
- * Author URI:  https://developer.suspended.suspended
+ * Author URI:  https://github.com/marirs/tumblr-to-minimalio-portfolio
  * License:     GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: tumblr-to-minimalio
